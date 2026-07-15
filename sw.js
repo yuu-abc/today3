@@ -1,6 +1,5 @@
-const CACHE_NAME = 'today3-v1';
+const CACHE_NAME = 'today3-v2';
 const APP_SHELL = [
-  './',
   './index.html',
   './today3.webmanifest',
   './today3-180.png',
