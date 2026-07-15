@@ -11,9 +11,16 @@
   <meta name="apple-mobile-web-app-title" content="今日の3つ">
   <meta name="description" content="今日やり切る3つだけに集中する、シンプルなデイリーフォーカスツール。">
   <link rel="manifest" href="./today3.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="./icons/today3-180.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icons/today3-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./today3-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="./today3-192.png">
   <title>今日の3つ | TODAY / THREE</title>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js');
+      });
+    }
+  </script>
   <style>
     *, *::before, *::after {
       box-sizing: border-box;
