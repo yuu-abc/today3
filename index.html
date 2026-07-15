@@ -1,0 +1,1369 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#090b10">
+  <meta name="color-scheme" content="dark">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="今日の3つ">
+  <meta name="description" content="今日やり切る3つだけに集中する、シンプルなデイリーフォーカスツール。">
+  <link rel="manifest" href="./today3.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/today3-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/today3-192.png">
+  <title>今日の3つ | TODAY / THREE</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #090b10;
+      --panel: #111620;
+      --panel-raised: #171d28;
+      --line: #2a3241;
+      --line-soft: rgba(155, 170, 198, .15);
+      --text: #f4f7fb;
+      --muted: #9aa5b8;
+      --faint: #7c879a;
+      --blue: #7b9cff;
+      --blue-bright: #a6baff;
+      --blue-soft: rgba(123, 156, 255, .12);
+      --green: #4be09a;
+      --green-soft: rgba(75, 224, 154, .11);
+      --danger: #ff7b83;
+      --shadow: 0 22px 60px rgba(0, 0, 0, .34);
+      --radius: 20px;
+      --safe-bottom: max(24px, env(safe-area-inset-bottom));
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-width: 280px;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 86% -8%, rgba(77, 112, 220, .24), transparent 36%),
+        radial-gradient(circle at -10% 38%, rgba(55, 81, 161, .12), transparent 30%),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button, input {
+      font: inherit;
+    }
+
+    button {
+      color: inherit;
+    }
+
+    button, summary, .task-card {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .skip-link {
+      position: fixed;
+      top: 8px;
+      left: 8px;
+      z-index: 1000;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: var(--text);
+      color: var(--bg);
+      font-size: 14px;
+      font-weight: 800;
+      transform: translateY(-160%);
+    }
+
+    .skip-link:focus {
+      transform: translateY(0);
+    }
+
+    .sr-only {
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      position: absolute;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .app {
+      width: min(100%, 520px);
+      min-height: 100dvh;
+      margin: 0 auto;
+      padding: env(safe-area-inset-top) 16px var(--safe-bottom);
+      position: relative;
+    }
+
+    .topbar {
+      min-height: 74px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(123, 156, 255, .55);
+      border-radius: 11px;
+      background: linear-gradient(145deg, rgba(123, 156, 255, .2), rgba(123, 156, 255, .04));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1), 0 8px 22px rgba(58, 91, 190, .18);
+      color: var(--blue-bright);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 19px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .brand-copy {
+      display: grid;
+      gap: 1px;
+    }
+
+    .brand-name {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .04em;
+    }
+
+    .brand-sub {
+      color: var(--faint);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .14em;
+    }
+
+    .guide-jump {
+      min-width: 74px;
+      min-height: 44px;
+      padding: 0 13px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: rgba(17, 22, 32, .72);
+      color: #c7cfdd;
+      font-size: 12px;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .guide-jump::before {
+      content: "?";
+      width: 18px;
+      height: 18px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #66738a;
+      border-radius: 50%;
+      color: #d6dce8;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+    }
+
+    .intro {
+      padding: 30px 4px 24px;
+    }
+
+    .intro-topline {
+      min-height: 24px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .date-label {
+      margin: 0;
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+      font-weight: 750;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .streak {
+      min-height: 24px;
+      padding: 4px 9px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid rgba(75, 224, 154, .28);
+      border-radius: 999px;
+      background: var(--green-soft);
+      color: #7cebb2;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 9px;
+      font-weight: 850;
+      letter-spacing: .08em;
+      white-space: nowrap;
+    }
+
+    .streak[hidden] {
+      display: none;
+    }
+
+    .eyebrow {
+      margin: 0 0 9px;
+      color: var(--blue);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+      font-weight: 850;
+      letter-spacing: .18em;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(32px, 10vw, 48px);
+      font-weight: 900;
+      letter-spacing: -.065em;
+      line-height: 1.08;
+    }
+
+    h1 span {
+      color: var(--blue-bright);
+    }
+
+    .intro-copy {
+      max-width: 34em;
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.75;
+    }
+
+    .progress-panel {
+      margin-bottom: 12px;
+      padding: 16px 16px 15px;
+      border: 1px solid var(--line-soft);
+      border-radius: 17px;
+      background: rgba(17, 22, 32, .78);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .025);
+    }
+
+    .progress-head {
+      margin-bottom: 11px;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .progress-status {
+      color: #d9deea;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .progress-count {
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+      font-weight: 850;
+      letter-spacing: .08em;
+    }
+
+    .progress-count strong {
+      color: var(--green);
+      font-size: 14px;
+    }
+
+    .progress-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+
+    .progress-segment {
+      height: 5px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #293140;
+      transition: background-color .28s ease, box-shadow .28s ease;
+    }
+
+    .progress-segment.ready {
+      background: var(--blue);
+      box-shadow: 0 0 16px rgba(123, 156, 255, .25);
+    }
+
+    .progress-segment.done {
+      background: var(--green);
+      box-shadow: 0 0 16px rgba(75, 224, 154, .26);
+    }
+
+    .task-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .task-card {
+      min-height: 88px;
+      padding: 14px 14px 14px 15px;
+      display: grid;
+      grid-template-columns: 36px minmax(0, 1fr) 48px;
+      align-items: center;
+      gap: 11px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(145deg, rgba(24, 30, 42, .98), rgba(16, 21, 30, .98));
+      box-shadow: 0 12px 32px rgba(0, 0, 0, .18), inset 0 1px 0 rgba(255, 255, 255, .025);
+      transition: border-color .22s ease, background-color .22s ease, transform .18s ease, box-shadow .22s ease;
+      cursor: text;
+    }
+
+    .task-card::before {
+      content: "";
+      width: 3px;
+      position: absolute;
+      inset: 16px auto 16px 0;
+      border-radius: 0 999px 999px 0;
+      background: #333d4e;
+      transition: background-color .22s ease, box-shadow .22s ease;
+    }
+
+    .task-card.has-text {
+      border-color: rgba(123, 156, 255, .42);
+      box-shadow: 0 14px 38px rgba(0, 0, 0, .22), 0 0 0 1px rgba(123, 156, 255, .04);
+    }
+
+    .task-card.has-text::before {
+      background: var(--blue);
+      box-shadow: 0 0 15px rgba(123, 156, 255, .52);
+    }
+
+    .task-card.is-done {
+      border-color: rgba(75, 224, 154, .32);
+      background: linear-gradient(145deg, rgba(25, 50, 43, .78), rgba(15, 29, 28, .92));
+      cursor: default;
+    }
+
+    .task-card.is-done::before {
+      background: var(--green);
+      box-shadow: 0 0 15px rgba(75, 224, 154, .5);
+    }
+
+    .task-card:focus-within {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(123, 156, 255, .14), var(--shadow);
+    }
+
+    .task-number {
+      color: #616d81;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 16px;
+      font-weight: 850;
+      letter-spacing: -.04em;
+      transition: color .22s ease;
+    }
+
+    .task-card.has-text .task-number {
+      color: var(--blue-bright);
+    }
+
+    .task-card.is-done .task-number {
+      color: var(--green);
+    }
+
+    .task-copy {
+      min-width: 0;
+      display: grid;
+      gap: 5px;
+    }
+
+    .task-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .task-label,
+    .task-state {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .task-label {
+      color: var(--faint);
+    }
+
+    .task-state {
+      color: #7d889a;
+    }
+
+    .task-card.has-text .task-state {
+      color: var(--blue-bright);
+    }
+
+    .task-card.is-done .task-state {
+      color: var(--green);
+    }
+
+    .task-input {
+      width: 100%;
+      min-width: 0;
+      min-height: 28px;
+      padding: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      caret-color: var(--blue-bright);
+      font-size: 16px;
+      font-weight: 650;
+      letter-spacing: -.015em;
+      line-height: 1.4;
+      appearance: none;
+    }
+
+    .task-input::placeholder {
+      color: #7c889c;
+      font-weight: 540;
+      opacity: 1;
+    }
+
+    .task-card.is-done .task-input {
+      color: #9bb9aa;
+      text-decoration: line-through;
+      text-decoration-thickness: 1.5px;
+      text-decoration-color: rgba(75, 224, 154, .7);
+    }
+
+    .task-toggle {
+      width: 48px;
+      height: 48px;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      border: 1px solid #435069;
+      border-radius: 15px;
+      background: #111722;
+      cursor: pointer;
+      transition: transform .16s ease, border-color .2s ease, background-color .2s ease, box-shadow .2s ease;
+    }
+
+    .task-toggle:disabled {
+      border-color: #303949;
+      background: #151a23;
+      cursor: not-allowed;
+      opacity: .52;
+    }
+
+    .task-toggle:not(:disabled):active {
+      transform: scale(.91);
+    }
+
+    .check-shape {
+      width: 18px;
+      height: 18px;
+      position: relative;
+      border: 1.5px solid #7e8ca5;
+      border-radius: 50%;
+      transition: border-color .2s ease, background-color .2s ease, transform .2s ease;
+    }
+
+    .check-shape::after {
+      content: "";
+      width: 7px;
+      height: 4px;
+      position: absolute;
+      left: 4px;
+      top: 4px;
+      border-left: 2px solid transparent;
+      border-bottom: 2px solid transparent;
+      transform: rotate(-45deg) scale(.5);
+      transition: border-color .2s ease, transform .2s ease;
+    }
+
+    .task-toggle[aria-pressed="true"] {
+      border-color: rgba(75, 224, 154, .7);
+      background: var(--green);
+      box-shadow: 0 0 23px rgba(75, 224, 154, .22);
+    }
+
+    .task-toggle[aria-pressed="true"] .check-shape {
+      border-color: #07120d;
+      background: transparent;
+      transform: scale(1.05);
+    }
+
+    .task-toggle[aria-pressed="true"] .check-shape::after {
+      border-color: #07120d;
+      transform: rotate(-45deg) scale(1);
+    }
+
+    .task-card.just-completed {
+      animation: task-pop .34s ease-out;
+    }
+
+    @keyframes task-pop {
+      0% { transform: scale(1); }
+      45% { transform: scale(.982); }
+      100% { transform: scale(1); }
+    }
+
+    .micro-hint {
+      min-height: 40px;
+      margin: 12px 3px 2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .micro-hint::before {
+      content: "→";
+      color: var(--blue-bright);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-weight: 900;
+    }
+
+    .celebration {
+      margin: 18px 0 0;
+      padding: 22px 20px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(75, 224, 154, .38);
+      border-radius: var(--radius);
+      background:
+        radial-gradient(circle at 90% 0, rgba(75, 224, 154, .2), transparent 40%),
+        linear-gradient(145deg, rgba(24, 54, 45, .95), rgba(14, 29, 27, .96));
+      box-shadow: 0 22px 50px rgba(0, 0, 0, .26), 0 0 40px rgba(75, 224, 154, .06);
+      animation: reveal .45s cubic-bezier(.2, .9, .25, 1);
+    }
+
+    .celebration[hidden] {
+      display: none;
+    }
+
+    .celebration::after {
+      content: "03/03";
+      position: absolute;
+      right: 14px;
+      bottom: -8px;
+      color: rgba(96, 229, 163, .08);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 48px;
+      font-weight: 900;
+      letter-spacing: -.08em;
+    }
+
+    @keyframes reveal {
+      from { opacity: 0; transform: translateY(8px) scale(.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .celebration-kicker {
+      margin: 0 0 6px;
+      color: var(--green);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .16em;
+    }
+
+    .celebration h2 {
+      margin: 0;
+      font-size: 21px;
+      letter-spacing: -.035em;
+    }
+
+    .celebration p:last-child {
+      margin: 7px 0 0;
+      color: #a5c8b7;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .guide-card {
+      margin-top: 28px;
+      padding: 20px;
+      border: 1px solid var(--line-soft);
+      border-radius: var(--radius);
+      background: rgba(17, 22, 32, .74);
+      scroll-margin-top: 18px;
+      outline: none;
+    }
+
+    .guide-card.flash {
+      animation: guide-flash .8s ease;
+    }
+
+    @keyframes guide-flash {
+      0%, 100% { border-color: var(--line-soft); }
+      50% { border-color: rgba(123, 156, 255, .75); box-shadow: 0 0 0 4px rgba(123, 156, 255, .1); }
+    }
+
+    .guide-head {
+      margin-bottom: 17px;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .guide-head h2 {
+      margin: 0;
+      font-size: 17px;
+      letter-spacing: -.025em;
+    }
+
+    .guide-head span {
+      color: var(--faint);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 9px;
+      font-weight: 850;
+      letter-spacing: .12em;
+    }
+
+    .guide-steps {
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 15px;
+      list-style: none;
+      counter-reset: steps;
+    }
+
+    .guide-steps li {
+      min-height: 42px;
+      padding-left: 48px;
+      position: relative;
+      counter-increment: steps;
+    }
+
+    .guide-steps li::before {
+      content: "0" counter(steps);
+      width: 34px;
+      height: 34px;
+      position: absolute;
+      left: 0;
+      top: 1px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #39455a;
+      border-radius: 10px;
+      color: var(--blue-bright);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .guide-steps strong {
+      display: block;
+      margin-bottom: 3px;
+      color: #e2e7f0;
+      font-size: 13px;
+    }
+
+    .guide-steps p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .local-note {
+      margin: 17px 0 0;
+      padding-top: 14px;
+      border-top: 1px solid var(--line-soft);
+      color: #8590a3;
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .local-note strong {
+      color: #b8c2d2;
+    }
+
+    .actions {
+      margin-top: 18px;
+    }
+
+    .reset-button {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 16px;
+      border: 1px solid transparent;
+      border-radius: 14px;
+      background: transparent;
+      color: #808b9e;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: color .18s ease, border-color .18s ease, background-color .18s ease;
+    }
+
+    .reset-button:not(:disabled):active {
+      background: rgba(255, 123, 131, .06);
+      color: var(--danger);
+    }
+
+    .reset-button:disabled {
+      cursor: not-allowed;
+      opacity: .42;
+    }
+
+    .app-footer {
+      margin-top: 24px;
+      color: #586376;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 9px;
+      font-weight: 750;
+      letter-spacing: .1em;
+      text-align: center;
+    }
+
+    dialog {
+      width: min(calc(100% - 24px), 440px);
+      margin: auto auto max(12px, env(safe-area-inset-bottom));
+      padding: 0;
+      border: 1px solid #333e50;
+      border-radius: 24px;
+      background: #151b25;
+      color: var(--text);
+      box-shadow: 0 28px 90px rgba(0, 0, 0, .7);
+    }
+
+    dialog::backdrop {
+      background: rgba(2, 4, 8, .74);
+      backdrop-filter: blur(6px);
+    }
+
+    .dialog-body {
+      padding: 24px 20px 20px;
+    }
+
+    .dialog-kicker {
+      margin: 0 0 8px;
+      color: var(--danger);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: .14em;
+    }
+
+    .dialog-body h2 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: -.035em;
+    }
+
+    .dialog-copy {
+      margin: 9px 0 20px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .dialog-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .dialog-actions button {
+      min-height: 48px;
+      border-radius: 13px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .cancel-button {
+      border: 1px solid var(--line);
+      background: #1a212d;
+      color: #c7cfdd;
+    }
+
+    .confirm-reset {
+      border: 1px solid rgba(255, 123, 131, .35);
+      background: rgba(255, 123, 131, .12);
+      color: #ff9ca2;
+    }
+
+    .save-alert {
+      margin: 12px 0 0;
+      padding: 11px 13px;
+      border: 1px solid rgba(255, 123, 131, .26);
+      border-radius: 12px;
+      background: rgba(255, 123, 131, .08);
+      color: #ffabb0;
+      font-size: 11px;
+      line-height: 1.55;
+    }
+
+    .save-alert[hidden] {
+      display: none;
+    }
+
+    :focus-visible {
+      outline: 3px solid rgba(166, 186, 255, .9);
+      outline-offset: 3px;
+    }
+
+    @media (min-width: 560px) {
+      .app {
+        padding-inline: 24px;
+      }
+
+      .intro {
+        padding-top: 42px;
+      }
+    }
+
+    @media (max-width: 340px) {
+      .brand-sub {
+        display: none;
+      }
+
+      .task-card {
+        grid-template-columns: 28px minmax(0, 1fr) 46px;
+        gap: 8px;
+        padding-inline: 12px;
+      }
+
+      .task-toggle {
+        width: 46px;
+        height: 46px;
+      }
+
+      .task-state {
+        display: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#tasksHeading">タスク入力へ移動</a>
+
+  <div class="app">
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="今日の3つ トップへ">
+        <span class="brand-mark" aria-hidden="true">3</span>
+        <span class="brand-copy">
+          <span class="brand-name">今日の3つ</span>
+          <span class="brand-sub">TODAY / THREE</span>
+        </span>
+      </a>
+      <button class="guide-jump" id="guideJump" type="button">使い方</button>
+    </header>
+
+    <main id="top">
+      <section class="intro" aria-labelledby="pageTitle">
+        <div class="intro-topline">
+          <p class="date-label" id="dateLabel"></p>
+          <div class="streak" id="streakBadge" hidden>🔥 <span id="streakCount">1</span> DAY STREAK</div>
+        </div>
+        <p class="eyebrow">DAILY FOCUS</p>
+        <h1 id="pageTitle">今日を勝ち切る、<br><span>3つだけ。</span></h1>
+        <p class="intro-copy">全部やろうとしない。大事なことだけに絞って、ひとつずつ終わらせよう。</p>
+      </section>
+
+      <section class="progress-panel" aria-label="今日の進捗">
+        <div class="progress-head">
+          <span class="progress-status" id="progressStatus">3つを決めよう</span>
+          <span class="progress-count"><strong id="doneCount">0</strong> / 3 DONE</span>
+        </div>
+        <div class="progress-bar" id="progressBar" role="progressbar" aria-label="完了したタスク" aria-valuemin="0" aria-valuemax="3" aria-valuenow="0">
+          <span class="progress-segment" id="segment0"></span>
+          <span class="progress-segment" id="segment1"></span>
+          <span class="progress-segment" id="segment2"></span>
+        </div>
+      </section>
+
+      <section aria-labelledby="tasksHeading">
+        <h2 id="tasksHeading" class="sr-only" tabindex="-1">今日のタスク</h2>
+        <div class="task-list" id="taskList"></div>
+        <p class="micro-hint" id="microHint">まずは1つ目。5分で始められる形にしよう。</p>
+      </section>
+
+      <section class="celebration" id="celebration" role="status" aria-live="polite" hidden>
+        <p class="celebration-kicker">ALL CLEAR</p>
+        <h2>3つ、やり切った。</h2>
+        <p id="celebrationCopy">今日はここまで。いい仕事でした。</p>
+      </section>
+
+      <section class="guide-card" id="guide" tabindex="-1" aria-labelledby="guideTitle">
+        <div class="guide-head">
+          <h2 id="guideTitle">使い方</h2>
+          <span>30 SEC GUIDE</span>
+        </div>
+        <ol class="guide-steps">
+          <li>
+            <strong>3つだけ決める</strong>
+            <p>今日中に終えることを、短く具体的に入力します。</p>
+          </li>
+          <li>
+            <strong>終わったらチェック</strong>
+            <p>右の丸をタップして完了。もう一度押せば元に戻せます。</p>
+          </li>
+          <li>
+            <strong>明日は自動で更新</strong>
+            <p>日付が変わると新しい3枠に切り替わります。</p>
+          </li>
+        </ol>
+        <p class="local-note"><strong>プライバシー：</strong>入力内容は送信されず、この端末のブラウザ内だけに保存されます。</p>
+        <p class="save-alert" id="saveAlert" role="alert" hidden>このブラウザでは保存できません。ページを閉じると入力内容が消える可能性があります。</p>
+      </section>
+
+      <div class="actions">
+        <button class="reset-button" id="resetButton" type="button" disabled>今日の3つをリセット</button>
+      </div>
+    </main>
+
+    <footer class="app-footer">TODAY / THREE · LOCAL ONLY</footer>
+  </div>
+
+  <dialog id="resetDialog" aria-labelledby="resetTitle" aria-describedby="resetCopy">
+    <div class="dialog-body">
+      <p class="dialog-kicker">RESET TODAY</p>
+      <h2 id="resetTitle">入力した3つを消しますか？</h2>
+      <p class="dialog-copy" id="resetCopy">今日の入力と完了状態だけを消します。これまでの連続記録は残ります。</p>
+      <div class="dialog-actions">
+        <button class="cancel-button" id="cancelReset" type="button">キャンセル</button>
+        <button class="confirm-reset" id="confirmReset" type="button">リセットする</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="liveRegion" class="skip-link" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const STORE = 'today3_daily_focus_v3';
+      const LEGACY_STORE = 'today3_v2';
+      const PLACEHOLDERS = [
+        '一番大事なこと',
+        '次に進めたいこと',
+        '今日中に片づけること'
+      ];
+      const PRIORITIES = ['TOP PRIORITY', 'SECOND FOCUS', 'FINAL FOCUS'];
+
+      let tasks = makeEmptyTasks();
+      let baseStreak = 0;
+      let dayCounted = false;
+      let activeDate = dateKey();
+      let saveTimer = null;
+
+      const taskList = document.getElementById('taskList');
+      const resetDialog = document.getElementById('resetDialog');
+
+      function makeEmptyTasks() {
+        return [0, 1, 2].map(() => ({ text: '', done: false }));
+      }
+
+      function normalizeTasks(value) {
+        return [0, 1, 2].map(index => {
+          const item = Array.isArray(value) ? value[index] : null;
+          const text = typeof item?.text === 'string' ? item.text.slice(0, 80) : '';
+          return { text, done: Boolean(item?.done && text.trim()) };
+        });
+      }
+
+      function dateKey(date = new Date()) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+
+      function previousDateKey() {
+        const date = new Date();
+        date.setDate(date.getDate() - 1);
+        return dateKey(date);
+      }
+
+      function normalizeSavedDate(value) {
+        if (typeof value !== 'string') return '';
+        if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+        const parsed = new Date(value);
+        return Number.isNaN(parsed.getTime()) ? '' : dateKey(parsed);
+      }
+
+      function allTasksDone(list = tasks) {
+        return list.every(task => task.done && task.text.trim());
+      }
+
+      function effectiveStreak() {
+        return baseStreak + (dayCounted ? 1 : 0);
+      }
+
+      function load() {
+        let raw = null;
+        let legacy = false;
+
+        try {
+          raw = localStorage.getItem(STORE);
+          if (!raw) {
+            raw = localStorage.getItem(LEGACY_STORE);
+            legacy = Boolean(raw);
+          }
+          if (!raw) return;
+
+          const data = JSON.parse(raw);
+          const savedTasks = normalizeTasks(data.tasks);
+          const savedDate = normalizeSavedDate(data.date);
+          const wasComplete = Boolean(data.allDone || allTasksDone(savedTasks));
+          const oldStreak = Math.max(0, Number(data.streak) || 0);
+
+          if (savedDate === activeDate) {
+            tasks = savedTasks;
+            if (legacy) {
+              baseStreak = oldStreak;
+              dayCounted = wasComplete;
+            } else {
+              baseStreak = Math.max(0, Number(data.baseStreak) || 0);
+              dayCounted = Boolean(data.dayCounted && wasComplete);
+            }
+            return;
+          }
+
+          tasks = makeEmptyTasks();
+          dayCounted = false;
+
+          if (savedDate === previousDateKey() && wasComplete) {
+            baseStreak = legacy
+              ? oldStreak + 1
+              : Math.max(1, Math.max(0, Number(data.baseStreak) || 0) + (data.dayCounted ? 1 : 0));
+          } else {
+            baseStreak = 0;
+          }
+        } catch (error) {
+          tasks = makeEmptyTasks();
+          baseStreak = 0;
+          dayCounted = false;
+        }
+      }
+
+      function save() {
+        clearTimeout(saveTimer);
+        try {
+          localStorage.setItem(STORE, JSON.stringify({
+            version: 3,
+            date: activeDate,
+            tasks,
+            baseStreak,
+            dayCounted,
+            streak: effectiveStreak(),
+            allDone: allTasksDone()
+          }));
+          document.getElementById('saveAlert').hidden = true;
+          return true;
+        } catch (error) {
+          document.getElementById('saveAlert').hidden = false;
+          return false;
+        }
+      }
+
+      function scheduleSave() {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(save, 180);
+      }
+
+      function checkDateRollover() {
+        if (activeDate === dateKey()) return false;
+        const previousActiveDate = activeDate;
+        save();
+        activeDate = dateKey();
+        tasks = makeEmptyTasks();
+        if (dayCounted && previousActiveDate === previousDateKey()) baseStreak += 1;
+        else baseStreak = 0;
+        dayCounted = false;
+        save();
+        render();
+        return true;
+      }
+
+      function buildTaskCards() {
+        taskList.innerHTML = [0, 1, 2].map(index => `
+          <div class="task-card" id="taskCard${index}" data-index="${index}">
+            <span class="task-number" aria-hidden="true">0${index + 1}</span>
+            <div class="task-copy">
+              <div class="task-meta">
+                <label class="task-label" for="taskInput${index}">${PRIORITIES[index]}</label>
+                <span class="task-state" id="taskState${index}">EMPTY</span>
+              </div>
+              <input
+                class="task-input"
+                id="taskInput${index}"
+                type="text"
+                inputmode="text"
+                maxlength="80"
+                autocomplete="off"
+                enterkeyhint="${index < 2 ? 'next' : 'done'}"
+                placeholder="${PLACEHOLDERS[index]}"
+                aria-describedby="taskState${index}"
+              >
+            </div>
+            <button class="task-toggle" id="taskToggle${index}" type="button" aria-pressed="false">
+              <span class="check-shape" aria-hidden="true"></span>
+            </button>
+          </div>
+        `).join('');
+
+        [0, 1, 2].forEach(index => {
+          const card = document.getElementById(`taskCard${index}`);
+          const input = document.getElementById(`taskInput${index}`);
+          const toggle = document.getElementById(`taskToggle${index}`);
+
+          input.addEventListener('input', () => onInput(index));
+          input.addEventListener('blur', () => onBlur(index));
+          input.addEventListener('keydown', event => onKeydown(event, index));
+          toggle.addEventListener('click', () => onToggle(index));
+          card.addEventListener('click', event => {
+            if (event.target.closest('button, input') || tasks[index].done) return;
+            input.focus();
+          });
+        });
+      }
+
+      function render() {
+        renderTasks();
+        renderProgress();
+        renderMeta();
+      }
+
+      function renderTasks() {
+        tasks.forEach((task, index) => {
+          const card = document.getElementById(`taskCard${index}`);
+          const input = document.getElementById(`taskInput${index}`);
+          const toggle = document.getElementById(`taskToggle${index}`);
+          const state = document.getElementById(`taskState${index}`);
+          const hasText = Boolean(task.text.trim());
+
+          card.classList.toggle('has-text', hasText && !task.done);
+          card.classList.toggle('is-done', task.done);
+          if (input.value !== task.text) input.value = task.text;
+          input.readOnly = task.done;
+          toggle.disabled = !hasText;
+          toggle.setAttribute('aria-pressed', String(task.done));
+          toggle.setAttribute('aria-label', task.done
+            ? `${index + 1}つ目「${task.text}」を未完了に戻す`
+            : `${index + 1}つ目「${task.text || PLACEHOLDERS[index]}」を完了にする`
+          );
+          state.textContent = task.done ? 'DONE' : hasText ? 'READY' : 'EMPTY';
+        });
+
+        document.getElementById('resetButton').disabled = !tasks.some(task => task.text || task.done);
+      }
+
+      function renderProgress() {
+        const done = tasks.filter(task => task.done).length;
+        const filled = tasks.filter(task => task.text.trim()).length;
+        const complete = done === 3 && filled === 3;
+
+        document.getElementById('doneCount').textContent = String(done);
+        document.getElementById('progressBar').setAttribute('aria-valuenow', String(done));
+
+        tasks.forEach((task, index) => {
+          const segment = document.getElementById(`segment${index}`);
+          segment.className = 'progress-segment';
+          if (task.done) segment.classList.add('done');
+          else if (task.text.trim()) segment.classList.add('ready');
+        });
+
+        const status = document.getElementById('progressStatus');
+        if (complete) status.textContent = 'ALL CLEAR';
+        else if (filled === 0) status.textContent = '3つを決めよう';
+        else if (filled < 3) status.textContent = `あと${3 - filled}つ決めよう`;
+        else if (done === 0) status.textContent = '準備完了';
+        else status.textContent = `あと${3 - done}つ`;
+
+        const hint = document.getElementById('microHint');
+        if (filled === 0) hint.textContent = 'まずは1つ目。5分で始められる形にしよう。';
+        else if (filled < 3) hint.textContent = `あと${3 - filled}件。短く、具体的に。`;
+        else if (!complete) hint.textContent = '準備完了。終わったら右のチェックをタップ。';
+        else hint.textContent = '今日のフォーカスは完了。おつかれさまでした。';
+
+        const celebration = document.getElementById('celebration');
+        celebration.hidden = !complete;
+        if (complete) {
+          const streak = effectiveStreak();
+          document.getElementById('celebrationCopy').textContent = streak > 1
+            ? `${streak}日連続達成。今日もいい仕事でした。`
+            : '今日はここまで。いい仕事でした。';
+        }
+      }
+
+      function renderMeta() {
+        const now = new Date();
+        const formatted = new Intl.DateTimeFormat('ja-JP', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          weekday: 'short'
+        }).format(now);
+        document.getElementById('dateLabel').textContent = formatted;
+
+        const streak = effectiveStreak();
+        const badge = document.getElementById('streakBadge');
+        badge.hidden = streak < 1;
+        document.getElementById('streakCount').textContent = String(streak);
+      }
+
+      function syncCompletionState() {
+        const complete = allTasksDone();
+        if (complete && !dayCounted) dayCounted = true;
+        if (!complete && dayCounted) dayCounted = false;
+      }
+
+      function onInput(index) {
+        if (checkDateRollover()) return;
+        tasks[index].text = document.getElementById(`taskInput${index}`).value;
+        if (tasks[index].done) tasks[index].done = false;
+        syncCompletionState();
+        render();
+        scheduleSave();
+      }
+
+      function onBlur(index) {
+        tasks[index].text = tasks[index].text.trimEnd();
+        save();
+        render();
+      }
+
+      function onKeydown(event, index) {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        if (index < 2) {
+          const next = [index + 1, index + 2].find(nextIndex => nextIndex < 3 && !tasks[nextIndex].done);
+          if (next !== undefined) document.getElementById(`taskInput${next}`).focus();
+          else event.currentTarget.blur();
+        } else {
+          event.currentTarget.blur();
+        }
+      }
+
+      function onToggle(index) {
+        if (checkDateRollover() || !tasks[index].text.trim()) return;
+        const willComplete = !tasks[index].done;
+        tasks[index].done = willComplete;
+        syncCompletionState();
+        save();
+        render();
+
+        if (willComplete) {
+          const card = document.getElementById(`taskCard${index}`);
+          card.classList.remove('just-completed');
+          requestAnimationFrame(() => card.classList.add('just-completed'));
+          setTimeout(() => card.classList.remove('just-completed'), 380);
+          if (navigator.vibrate) navigator.vibrate(12);
+          announce(`${index + 1}つ目を完了しました`);
+        } else {
+          requestAnimationFrame(() => document.getElementById(`taskInput${index}`).focus());
+          announce(`${index + 1}つ目を未完了に戻しました`);
+        }
+      }
+
+      function announce(message) {
+        const region = document.getElementById('liveRegion');
+        region.textContent = '';
+        requestAnimationFrame(() => { region.textContent = message; });
+      }
+
+      function openResetDialog() {
+        if (!tasks.some(task => task.text || task.done)) return;
+        if (typeof resetDialog.showModal === 'function') {
+          resetDialog.showModal();
+          document.getElementById('cancelReset').focus();
+        } else if (window.confirm('入力した3つを消しますか？')) {
+          resetToday();
+        }
+      }
+
+      function resetToday() {
+        tasks = makeEmptyTasks();
+        dayCounted = false;
+        save();
+        render();
+        if (resetDialog.open) resetDialog.close();
+        requestAnimationFrame(() => document.getElementById('taskInput0').focus());
+        announce('今日の3つをリセットしました');
+      }
+
+      document.getElementById('guideJump').addEventListener('click', () => {
+        const guide = document.getElementById('guide');
+        guide.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        guide.classList.remove('flash');
+        requestAnimationFrame(() => guide.classList.add('flash'));
+        setTimeout(() => guide.classList.remove('flash'), 850);
+        setTimeout(() => guide.focus({ preventScroll: true }), 400);
+      });
+
+      document.getElementById('resetButton').addEventListener('click', openResetDialog);
+      document.getElementById('cancelReset').addEventListener('click', () => resetDialog.close());
+      document.getElementById('confirmReset').addEventListener('click', resetToday);
+      resetDialog.addEventListener('click', event => {
+        if (event.target === resetDialog) resetDialog.close();
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) checkDateRollover();
+      });
+      window.addEventListener('pageshow', checkDateRollover);
+      window.addEventListener('pagehide', save);
+
+      buildTaskCards();
+      load();
+      save();
+      render();
+    })();
+  </script>
+</body>
+</html>
